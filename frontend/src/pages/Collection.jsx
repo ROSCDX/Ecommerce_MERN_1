@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
+import Fuse from 'fuse.js';
 import { ShopContext } from '../context/ShopContext'
 import { assets } from '../assets/assets'
 import Title from '../components/Title'
@@ -6,7 +7,7 @@ import ProductItem from '../components/ProductItem'
 
 const Collection = () => {
 
-  const {products} = useContext(ShopContext)
+  const {products, search, showSearch} = useContext(ShopContext)
   const [showFilter, setShowFilter] = useState(false)
   const[filterProducts, setFilterProducts] = useState([])
   const[category,setCategory] = useState([])
@@ -36,6 +37,19 @@ const Collection = () => {
   const applyFilter = () => {
     let productsCopy = products.slice();
 
+
+    if (showSearch && search) {
+      const fuse = new Fuse(products, {
+        keys: ["name"],
+        threshold: 0.9, // lower threshold for stricter matches, higher for broader
+      });
+      const result = fuse.search(search);
+      productsCopy = result.map(({ item }) => item);
+    }
+    // if(showSearch && search){
+    //   productsCopy = productsCopy.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
+    // }
+
     if (category.length > 0) {
       productsCopy = productsCopy.filter(item => category.includes(item.category));
     }
@@ -53,6 +67,14 @@ const Collection = () => {
 
     setFilterProducts(productsCopy);
   }
+
+
+
+
+  useEffect(()=>{
+    applyFilter()
+  },[category,subCategory,sortType, search, showSearch])
+
 
 
   // const sortProduct = () => {
@@ -75,9 +97,7 @@ const Collection = () => {
 
 
 
-  useEffect(()=>{
-    applyFilter()
-  },[category,subCategory,sortType])
+
 
   // useEffect(()=>{
   //   sortProduct()
